@@ -1,5 +1,6 @@
 class CalendarsController < ApplicationController
 
+
   # １週間のカレンダーと予定が表示されるページ
   def index
     get_week
@@ -15,7 +16,7 @@ class CalendarsController < ApplicationController
   private
 
   def plan_params
-    params.require(:calendars).permit(:date, :plan)
+    params.require(:plan).permit(:date, :plan)
   end
 
   def get_week
@@ -25,17 +26,32 @@ class CalendarsController < ApplicationController
     @todays_date = Date.today
     # 例)　今日が2月1日の場合・・・ Date.today.day => 1日
 
-    @week_days = []
+    @week_days = []   # 1週間分のデータを入れるための配列
 
-    plans = Plan.where(date: @todays_date..@todays_date + 6)
+    plans = Plan.where(date: @todays_date..@todays_date + 6)  # 1週間分の予定をデータベースから取得
 
     7.times do |x|
       today_plans = []
       plans.each do |plan|
-        today_plans.push(plan.plan) if plan.date == @todays_date + x
+        today_plans.push(plan.plan) if plan.date == @todays_date + x  # その日の予定を取得
       end
-      days = { month: (@todays_date + x).month, date: (@todays_date+x).day, plans: today_plans}
-      @week_days.push(days)
+
+
+      # 曜日を計算
+    wday_num = (@todays_date + x).wday  # 今日の曜日を取得
+    if wday_num >= 7  # wday_numが7以上なら
+      wday_num = wday_num - 7  # 7を引いてリセットする
+    end
+
+      days = {
+        :month => (@todays_date + x).month,
+        :date => (@todays_date+x).day,
+        :plans => today_plans,
+        :wday => wdays[wday_num]  # 曜日を取得
+      }
+      
+      @week_days.push(days)   # 配列に追加
+
     end
 
   end
